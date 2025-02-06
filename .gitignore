@@ -9,4 +9,7 @@ db.*
 *.bak
 .DS_Store
 
-public/songs/
+public/songs/*
+
+a.bat
+package-lock.json
