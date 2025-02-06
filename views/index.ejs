@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>music player</title>
+
+    <link rel="icon" type="image/png" sizes="32x32" href="vinyl.webp">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+        integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Sans&display=swap">
+
+    <link rel="stylesheet" href="css/simple.css">
+</head>
+
+<body>
+    <main>
+        <div class="text">
+            <a class="btn" id="login" href="<%=loginWithDiscordUrl%>">
+                Login with Discord
+            </a>
+        </div>
+    </main>
+
+    <script>
+        function generateRandomString() {
+            let randomString = ``;
+            const randomNumber = Math.floor(Math.random() * 10);
+
+            for (let index = 0; index < 20 + randomNumber; index++)
+                randomString += String.fromCodePoint(33 + Math.floor(Math.random() * 94));
+
+            return randomString;
+        }
+
+        window.onload = () => {
+            const fragment = new URLSearchParams(window.location.hash.slice(1));
+            const [accessToken, tokenType, state] = [fragment.get('access_token'), fragment.get('token_type'),
+            fragment.get('state')];
+
+            if (!accessToken) {
+                const randomString = generateRandomString();
+                localStorage.setItem('oauth-state', randomString);
+
+                return document.getElementById('login').href += `&state=${encodeURIComponent(btoa(randomString))}`;
+            }
+
+            if (localStorage.getItem('oauth-state') !== atob(decodeURIComponent(state)))
+                alert('You may have been click-jacked! Refresh your browser.');
+        }
+    </script>
+</body>
+
+</html>

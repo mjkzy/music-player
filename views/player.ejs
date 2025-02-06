@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+
+    <title>music player</title>
+
+    <link rel="stylesheet" href="css/style.css">
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+</head>
+
+<body>
+    <header>
+        <h1 id="nowPlayingText">music player</h1>
+
+        <div style="position: absolute; top: 15px; right: 15px;">
+            <img id="avatar" loading="lazy" src="vinyl.webp" alt="Avatar" onclick="toggle_avatar_dropbox()">
+
+            <div id="dropdown-menu" class="hidden"
+                style="position: absolute; top: 60px; right: 0; background-color: rgb(24, 24, 24); box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); border-radius: 4px; padding: 10px;">
+                <a href="/player/logout"
+                    style="text-decoration: none; color: rgb(255, 255, 255); padding: 5px 10px; display: block;">Logout</a>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="track-list">
+            <% for (let i=0; i < songs.length; i++) { const avatar=songs[i].avatar ?
+                `avatars/${encodeURIComponent(songs[i].uploader_id)}/${encodeURIComponent(songs[i].avatar)}.webp` :
+                `vinyl.webp`; const avatarUrl=songs[i].avatar ? `https://cdn.discordapp.com/${avatar}?size=256` :
+                avatar; %>
+                <div class="track">
+                    <div class="track-info">
+                        <span class="track-title">
+                            <%= songs[i].title %>
+                        </span>
+                        <small class="track-date">
+                            <%= new Date(songs[i].upload_time).toLocaleString(undefined, { month: 'short' ,
+                                day: '2-digit' , year: 'numeric' , hour: '2-digit' , minute: '2-digit' , hour12: true })
+                                %>
+                        </small>
+                    </div>
+
+                    <div class="buttons">
+                        <div class="avatar-container">
+                            <img class="avatar-icon" src="<%= avatarUrl %>"
+                                onerror="this.onerror=null;this.src='vinyl.webp';" alt="Uploader Avatar">
+                            <span class="uploader_name">
+                                <%= songs[i].uploader_name %>
+                            </span>
+                        </div>
+
+                        <button onclick="select_track('<%= songs[i].name %>', `<%= songs[i].title %>`, <%= i %>)">
+                            <i class="fas fa-play"></i>
+                        </button>
+                        <button
+                            onclick="add_track_to_queue('<%= songs[i].name %>', '<%= songs[i].title %>', <%= i %>, this)">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                        <button onclick="delete_track('<%= songs[i].id %>')">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                        <button onclick="copy_track_link('<%= songs[i].id %>')">
+                            <i class="fa-solid fa-copy"></i>
+                        </button>
+                    </div>
+                </div>
+                <% } %>
+        </div>
+    </div>
+
+    <footer class="player-controls">
+        <button onclick="next_track(true)"><i class="fas fa-backward"></i></button>
+        <button onclick="set_time(-10)"><i class="fas fa-undo"></i></button>
+        <button onclick="toggle_play()"><i class="fa-solid fa-play" id="play-icon"></i></button>
+        <button onclick="set_time(10)"><i class="fas fa-redo"></i></button>
+        <button onclick="next_track(false)"><i class="fas fa-forward"></i></button>
+        <button onclick="play_random_track()"><i class="fas fa-shuffle"></i></button>
+
+        <div class="volume-slider">
+            <i class="fas fa-volume-up volume-icon"></i>
+            <input id="volumeControl" type="range" min="0" max="1" step="0.01" value="1"
+                oninput="change_volume(this.value)">
+        </div>
+    </footer>
+
+    <div class="upload" id="upload-popup">
+        <button class="close-upload" onclick="toggle_upload(false)" style="background-color: #ff1a1a;">✖</button>
+        <form action="/player/upload" method="POST" enctype="multipart/form-data">
+            <input id="upload-song" type="file" name="song" accept=".mp3,.wav,.ogg,.flac,.aac,.m4a,.wma" required>
+
+            <button type="submit">Upload</button>
+        </form>
+    </div>
+
+    <button id="show-upload-button" class="show-upload" onclick="toggle_upload(true)" style="display: none;">
+        <i class="fa fa-upload"></i>
+    </button>
+
+    <script>
+        let current_track = 0;
+
+        let paused_track_text;
+        let track_queue = [];
+
+        let audio = new Audio();
+        audio.addEventListener('ended', function () {
+            check_queued_tracks();
+        });
+
+        const track_list = <%- JSON.stringify(songs) %>; // weird EJS code breaks auto format
+
+        function check_queued_tracks() {
+            if (track_queue.length > 0) {
+                const next_track = track_queue.shift();
+
+                // remove green queued button
+                if (next_track.button)
+                    next_track.button.classList.remove(`queued`);
+
+                play_track(next_track.path, next_track.title);
+                return true;
+            }
+            return false;
+        }
+
+        function delete_track(id) {
+            if (!confirm('Are you sure you want to delete this song?')) {
+                return;
+            }
+
+            fetch(`player/delete?id=${id}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+                .then(response => response.text())
+                .then(data => {
+                    location.reload();
+                })
+                .catch(error => console.error('Error deleting song:', error));
+        }
+
+        function select_track(path, title, index) {
+            current_track = index;
+            play_track(path, title);
+        }
+
+        function add_track_to_queue(path, title, index, elem) {
+            let queue_index = track_queue.findIndex(track => track.button === elem);
+            if (queue_index > -1) {
+                track_queue.splice(queue_index, 1);
+                elem.classList.remove('queued');
+            } else {
+                track_queue.push({ path: path, title: title, index: index, button: elem });
+                elem.classList.add('queued');
+            }
+        }
+
+        function manual_clipboard_copy(text) {
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+
+            textArea.style.position = 'fixed';
+            textArea.style.opacity = '0';
+
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+
+            try {
+                const successful = document.execCommand('copy');
+                alert(successful ? "Copied to clipboard!" : "Failed to copy the link.");
+            } catch (err) {
+                console.error("Fallback: Failed to copy the link: ", err);
+                alert("Failed to copy the link.");
+            }
+
+            document.body.removeChild(textArea);
+        }
+
+        function copy_track_link(id) {
+            const url = `${window.location.origin}/player?id=${id}`;
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(url).then(() => {
+                    alert("Copied to clipboard!");
+                }).catch(err => {
+                    console.error("Failed to copy: ", err);
+                    alert("Failed to copy the link.");
+                });
+            } else {
+                manual_clipboard_copy(url);
+            }
+        }
+
+        function update_playback_status() {
+            const nowPlayingText = document.getElementById(`nowPlayingText`);
+
+            const formatTime = (seconds) => {
+                const minutes = Math.floor(seconds / 60);
+                const secs = Math.floor(seconds % 60).toString().padStart(2, `0`);
+                return `${minutes}:${secs}`;
+            };
+
+            const currentTime = formatTime(audio.currentTime);
+            const totalDuration = isNaN(audio.duration) ? "0:00" : formatTime(audio.duration);
+
+            const currentTrackName = nowPlayingText.innerText.split("Now playing: ")[1]?.split(" (")[0] || "Unknown";
+
+            nowPlayingText.innerText = `Now playing: ${currentTrackName} (${currentTime}/${totalDuration})`;
+        }
+
+        async function play_track(file_name, track_name) {
+            console.log(file_name, track_name)
+            /*
+            const cover_image = document.getElementById(`cover-image`);
+
+            try {
+                const response = await fetch(`/player/metadata?file=${encodeURIComponent(file_name)}`);
+                if (!response.ok) throw new Error(`Failed to fetch metadata`);
+
+                const metadata = await response.json();
+                if (metadata.cover) {
+                    cover_image.src = metadata.cover;
+                } else {
+                    cover_image.src = `/vinyl.webp`; // Fallback
+                }
+            } catch (err) {
+                console.error(`Failed to fetch metadata:`, err);
+                cover_image.src = `/vinyl.webp`; // Fallback
+            }
+            */
+
+            const nowPlayingText = document.getElementById(`nowPlayingText`);
+            track_name = decodeURIComponent(track_name).replace(/\.[^/.]+$/, ``);
+            nowPlayingText.innerText = `Now playing: ${track_name} (0:00/0:00)`;
+
+            audio.src = `/songs/${decodeURIComponent(file_name)}`;
+            audio.play().then(() => {
+                paused_track_text = undefined;
+                toggle_elements(false);
+            }).catch((err) => {
+                toggle_elements(true);
+                alert(err); // handle errors to user
+            });
+        }
+
+        function set_time(time) {
+            audio.currentTime = Math.max(0, audio.currentTime + time);
+        }
+
+        function toggle_elements(paused) {
+            const playIcon = document.getElementById(`play-icon`);
+            const vinylIcon = document.querySelector(`.record img`);
+            const now_playing = document.getElementById(`nowPlayingText`);
+
+            if (paused) {
+                playIcon.classList.remove(`fa-pause`);
+                playIcon.classList.add(`fa-play`);
+
+                audio.removeEventListener(`timeupdate`, update_playback_status);
+                audio.removeEventListener(`loadedmetadata`, update_playback_status);
+
+                paused_track_text = now_playing.innerText;
+                now_playing.innerText = now_playing.innerText.replace("Now playing:", "Paused:");
+            }
+            else {
+                // clear events just in case
+                audio.removeEventListener(`timeupdate`, update_playback_status);
+                audio.removeEventListener(`loadedmetadata`, update_playback_status);
+
+                playIcon.classList.remove(`fa-play`);
+                playIcon.classList.add(`fa-pause`);
+
+                if (paused_track_text) {
+                    // set early before events
+                    document.getElementById(`nowPlayingText`).innerText = paused_track_text;
+                }
+
+                audio.addEventListener(`timeupdate`, update_playback_status);
+                audio.addEventListener(`loadedmetadata`, update_playback_status);
+            }
+        }
+
+        function toggle_play() {
+            if (!audio.src || audio.src === ``)
+                return;
+
+            if (audio.paused) {
+                audio.play();
+            } else {
+                audio.pause();
+            }
+            toggle_elements(audio.paused);
+        }
+
+        function next_track(previous) {
+            if (previous && current_track > 0) {
+                current_track--;
+            }
+            else if (check_queued_tracks()) {
+                // handles the logic for play_track since its a queued track
+                return;
+            }
+            else if (current_track < track_list.length - 1) {
+                current_track++;
+            }
+            play_track(track_list[current_track].name, track_list[current_track].title);
+        }
+
+        function play_random_track() {
+            index = Math.floor(Math.random() * track_list.length);
+            play_track(track_list[index].name, track_list[index].title);
+        }
+
+        function change_volume(value) {
+            audio.volume = parseFloat(value);
+            set_cookie(`volume`, value, 7);
+        }
+
+        // add space bar toggle play
+        document.addEventListener(`keyup`, event => {
+            if (event.code === 'Space' && !event.repeat) {
+                event.preventDefault();
+                toggle_play();
+            }
+        });
+
+        // utils
+        function set_cookie(name, value, days) {
+            const date = new Date();
+            date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000)); // Days to milliseconds
+            const expires = "expires=" + date.toUTCString();
+            document.cookie = `${name}=${value}; ${expires}; path=/`;
+        }
+
+        function get_cookie(name) {
+            const cookieArr = document.cookie.split(`;`);
+            for (let i = 0; i < cookieArr.length; i++) {
+                const cookie = cookieArr[i].trim();
+                if (cookie.indexOf(name + "=") === 0) {
+                    return cookie.substring(name.length + 1);
+                }
+            }
+            return null;
+        }
+
+        function parseJwt(token) {
+            const base64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+            const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+            return JSON.parse(jsonPayload);
+        };
+
+        const userInfo = parseJwt(get_cookie("token"));
+
+        // on page loaded events
+        document.addEventListener(`DOMContentLoaded`, () => {
+            // set volume from saved cookies
+            const volume = get_cookie(`volume`);
+            if (volume !== null) {
+                audio.volume = parseFloat(volume);
+                const volumeControl = document.getElementById(`volumeControl`);
+                volumeControl.value = volume;
+            }
+
+            popup_cookie = get_cookie("upload_popup");
+            if (popup_cookie !== null) {
+                toggle_upload(popup_cookie === "true");
+            }
+
+            const avatar = userInfo.avatar
+                ? `https://cdn.discordapp.com/avatars/${encodeURIComponent(userInfo.id)}/${encodeURIComponent(userInfo.avatar)}.webp?size=256`
+                : `vinyl.webp`;
+            document.getElementById("avatar").src = avatar;
+
+            const params = new URLSearchParams(window.location.search);
+            if (params.has("id")) {
+                const autoplay_track = track_list.find(track => track.id === params.get("id"));
+                if (autoplay_track) {
+                    play_track(autoplay_track.name, autoplay_track.title);
+                }
+            }
+        });
+
+        function toggle_upload(show) {
+            const uploadPopup = document.getElementById("upload-popup");
+            const showUploadButton = document.getElementById("show-upload-button");
+
+            if (show) {
+                uploadPopup.classList.remove("hidden"); // Show upload form
+                showUploadButton.style.display = "none"; // Hide reopen button
+                set_cookie(`upload_popup`, true, 7)
+            } else {
+                uploadPopup.classList.add("hidden"); // Hide upload form
+                showUploadButton.style.display = "block"; // Show reopen button
+                set_cookie(`upload_popup`, false, 7)
+            }
+        }
+
+        function toggle_avatar_dropbox() {
+            const dropdown = document.getElementById('dropdown-menu');
+            dropdown.classList.toggle('hidden');
+        }
+
+        window.addEventListener('click', function (event) {
+            const dropdown = document.getElementById('dropdown-menu');
+            if (!event.target.matches('#avatar')) {
+                dropdown.classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+
+</html>

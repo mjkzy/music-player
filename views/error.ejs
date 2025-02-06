@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>music player</title>
+
+    <link rel="icon" type="image/png" sizes="32x32" href="vinyl.webp">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+        integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Sans&display=swap">
+
+    <link rel="stylesheet" href="css/simple.css">
+
+    <meta name="robots" content="noindex">
+</head>
+
+<body>
+    <main>
+        <div class="text">
+            <h1 id="msg" style="color: #f04747;">
+                <%=message%>
+            </h1>
+            <br />
+            <h2>
+                <a href="/" class="text-white">
+                    Go Back
+                </a>
+            </h2>
+        </div>
+    </main>
+
+    <script src="js/utils.js"></script>
+    <script>
+        const randomString = generateRandomString();
+        localStorage.setItem('oauth-state', randomString);
+    </script>
+</body>
+
+</html>

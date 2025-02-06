@@ -1,0 +1,155 @@
+body {
+    background: black;
+    text-align: center;
+    font-family: Arial, sans-serif;
+    font-style: inherit;
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    position: absolute;
+}
+
+main,
+body,
+html {
+    width: 100%;
+    height: 100vh;
+    color: #fff;
+    background: linear-gradient(-45deg, #901d1d, #370a0a, #3a0d0d, #694040, #972828, #000);
+    background-size: 400% 400%;
+    position: relative;
+    animation: gradient 25s ease-in-out infinite;
+}
+
+@keyframes gradient {
+    0% {
+        background-position: 0 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0 50%;
+    }
+}
+
+h1 {
+    font-weight: bold;
+}
+
+.text {
+    color: white;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.text h1 {
+    font-size: 40px;
+}
+
+.text h2 {
+    font-size: 22px;
+    font-weight: 300;
+}
+
+#btn {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto;
+}
+
+button,
+a.btn {
+    font-size: 1.75rem;
+    color: white !important;
+    background-color: #3755c2 !important;
+    border: none !important;
+    box-shadow: none !important;
+    transition: background-color 0.17s ease;
+    margin-bottom: 10px;
+}
+
+button:hover,
+a.btn:hover {
+    background-color: #7289da !important;
+}
+
+button:active,
+a.btn:active {
+    background-color: #5b6eae !important;
+}
+
+label {
+    color: #8e9297;
+}
+
+textarea {
+    color: #dcddde !important;
+    background: rgba(0 0 0 / 10%) !important;
+    border: 1px solid rgba(0 0 0 / 30%) !important;
+    outline: none !important;
+    box-shadow: none !important;
+    transition: border-color 0.2s ease-in-out;
+    resize: none;
+    overflow-y: hidden;
+}
+
+textarea:hover {
+    border-color: #040405 !important;
+}
+
+textarea:focus {
+    border-color: #7289da !important;
+}
+
+.textInput {
+    position: relative;
+}
+
+.remainingLength {
+    position: absolute;
+    bottom: 12px;
+    right: 14px;
+    font-size: 12px;
+    font-family: monospace;
+    pointer-events: none;
+    color: #72767d;
+}
+
+.lowOnSpace {
+    color: #f36c6c;
+}
+
+#username {
+    color: white;
+}
+
+@media only screen and (max-width: 999px) {
+    .text h1 {
+        font-size: 20px;
+    }
+
+    .text h2 {
+        font-size: 20px;
+        font-weight: 300;
+    }
+
+    button,
+    a.btn {
+        font-size: 1.25rem;
+        color: white !important;
+        background-color: #3755c2 !important;
+        border: none !important;
+        box-shadow: none !important;
+        transition: background-color 0.17s ease;
+        margin-bottom: 10px;
+    }
+}
