@@ -1,12 +1,12 @@
 # music-player
 
-A self-hosted, standalone application that plays music. Uses Discord OAuth for authentication.
+a self-hosted application for storing & playing music easily. uses Discord OAuth.
 
-- Basic player controls (previous, last 10s, play, next 10s, next)
-- Song queue
-- Upload & delete tracks
-- See who uploaded the song via Discord avatar & name
-- Make instance private to a specific Discord Guild
+- basic player controls (previous, last 10s, play, next 10s, next)
+- song queue
+- upload & delete tracks
+- show song uploader via Discord avatar & name
+- restrict access to a Discord Guild's members only
 
 <details>
   <summary>Screenshots</summary>
@@ -24,26 +24,18 @@ A self-hosted, standalone application that plays music. Uses Discord OAuth for a
 ![error](./.github/error.png)
 </details>
 
-## Installation
+## Why
 
-### Setup
-1. Create a new [Discord Application](https://discord.com/developers/applications).
-2. Under the OAuth2 tab, add a new redirect of `https://your-domain.here/validate`.
-3. Proceed with the [install](#install).
-4. Reverse proxy `http://localhost:port` to your (sub)domain with HTTPS.
-5. Edit the `config.json.example` to be a valid `config.json`, and then setup your config like so
+i don't really like paying for streaming services, especially for some of the music i listen to. this project was a nice way for me to share music between my phone & pc quickly and easy. plus, while on mobile, you can play music and leave the site without the music pausing. i created this within a little less than a week just for fun 😀
 
-### Requirements
-- [Git](https://git-scm.com/)
-- [Node.js](https://nodejs.org/) >= v16.14.0
-
-### Install dependencies
-
-```bash
-git clone https://github.com/mjkzy/music-player.git
-cd music-player
-npm i
-```
+## Setup
+1. Install [Git](https://git-scm.com/) (or [GitHub Desktop](https://desktop.github.com/download/)) and clone this repo
+2. Install [Node.js](https://nodejs.org/) >= v16.14.0
+3. Run `install.bat` inside folder to install dependencies
+4. Create a new [Discord Application](https://discord.com/developers/applications).
+5. Under the OAuth2 tab, add a new redirect of `https://your-domain.here/validate`.
+6. Reverse proxy `http://localhost:port` to your (sub)domain with HTTPS.
+7. Edit the `config.json.example` to be a valid `config.json`, and then setup your config like so
 
 ## Configuration
 
