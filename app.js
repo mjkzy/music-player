@@ -3,7 +3,7 @@ import cookieParser from 'cookie-parser';
 import express from 'express';
 import path from 'path';
 
-import router from "./router.js";
+import router from "./utils/router.js";
 
 import { createRequire } from "node:module";
 const require = createRequire(import.meta.url);
@@ -14,9 +14,11 @@ export const {
 const app = express();
 
 app.set('view engine', 'ejs');
-app.set('views', path.join("./", 'views'));
 
-app.use(express.static(path.join("./", 'public')));
+const PUBLIC_FOLDER = path.join("./", 'public');
+app.set('views', path.join(PUBLIC_FOLDER, 'views'));
+
+app.use(express.static(PUBLIC_FOLDER));
 app.use(cookieParser());
 app.use(router);
 

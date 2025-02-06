@@ -1,6 +1,6 @@
-import jwt from "./utils/jwt.js";
+import jwt from "./jwt.js"
 
-import { sql } from "./app.js";
+import { sql } from "../app.js"
 
 export default {
     redirect_to_error_page(response, errorMessage, code) {

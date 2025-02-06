@@ -1,9 +1,9 @@
 import express from "express";
 
-import index from "./routes/index.js"
-import player from "./routes/player.js";
-import error from "./routes/error.js";
-import validate from "./routes/validate.js"
+import index from "../routes/index.js"
+import player from "../routes/player.js";
+import error from "../routes/error.js";
+import validate from "../routes/validate.js"
 
 const router = new express.Router();
 
