@@ -7,7 +7,7 @@ import { randomUUID } from "crypto";
 import { fileTypeFromBuffer } from 'file-type';
 
 import jwt from "../utils/jwt.js"
-import utils from "../utils.js";
+import utils from "../utils/utils.js";
 
 import { sql } from "../app.js";
 

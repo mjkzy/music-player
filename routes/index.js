@@ -1,7 +1,7 @@
 import express from "express";
 const router = new express.Router();
 
-import utils from "../utils.js";
+import utils from "../utils/utils.js";
 
 import {
 clientId,

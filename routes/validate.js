@@ -12,7 +12,7 @@ import {
     sql,
     dev
 } from "../app.js";
-import utils from "../utils.js";
+import utils from "../utils/utils.js";
 
 router.get(`/`, async (request, response) => {
     if (request.method !== `GET`)
@@ -69,14 +69,14 @@ router.get(`/`, async (request, response) => {
 
         const token = jwt.createJwt(oauthUser, oauthData.expires_in);
         response.cookie('token', token, {
-            httpOnly: true, // let js use
+            httpOnly: (dev ? false : true), // let js use
             secure: (dev ? false : true),
             path: '/',
             maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days expiration
         });
 
         response.cookie('state', state, {
-            httpOnly: true,
+            httpOnly: (dev ? false : true),
             secure: (dev ? false : true),
             path: '/',
             maxAge: 7 * 24 * 60 * 60 * 1000
