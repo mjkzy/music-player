@@ -70,14 +70,14 @@ router.get(`/`, async (request, response) => {
         const token = jwt.createJwt(oauthUser, oauthData.expires_in);
         response.cookie('token', token, {
             httpOnly: true, // let js use
-            secure: dev,
+            secure: (dev ? false : true),
             path: '/',
             maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days expiration
         });
 
         response.cookie('state', state, {
             httpOnly: true,
-            secure: dev,
+            secure: (dev ? false : true),
             path: '/',
             maxAge: 7 * 24 * 60 * 60 * 1000
         });

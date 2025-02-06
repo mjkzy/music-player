@@ -1,0 +1,9 @@
+{
+    "clientId": "",
+    "clientSecret": "",
+    "port": 5000,
+    "websiteUrl": "http://127.0.0.1:5000",
+    "jwtSecret": "",
+    "guildId": "1110531063161299074",
+    "dev": true
+}
